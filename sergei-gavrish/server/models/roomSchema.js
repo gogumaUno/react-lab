@@ -1,7 +1,9 @@
 import mongoose from 'mongoose'
 
 const RoomSchema = new mongoose.Schema({
-  title: String
-})
+  title: String,
+  messages: [String],
+  users: []
+});
 
-export default mongoose.model('Room', roomSchema);
+export default mongoose.model('Room', RoomSchema);

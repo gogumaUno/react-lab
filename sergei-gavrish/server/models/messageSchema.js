@@ -3,8 +3,7 @@ import mongoose from 'mongoose'
 const MessageSchema = new mongoose.Schema({
   user: String,
   content: String,
-  room: String,
-  image: String 
+  room: String
 })
 
-export default mongoose.model('Message', messageSchema);
+export default mongoose.model('Message', MessageSchema);

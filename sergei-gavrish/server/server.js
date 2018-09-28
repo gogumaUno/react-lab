@@ -20,6 +20,15 @@ const io = SocketIO(server);
 io.on('connection', client => {
   console.log(`${client.id} connected`);
 
+  client.on('join', room =>{
+    console.log(`${client.id} connected to room ${room}`)
+    client.join(room);
+  })
+
+  client.on('message', obj => {
+    io.to(obj.room).emit('recieve_message', obj.message)
+  })
+
   client.on('disconnect', () => {
     console.log(`${client.id} disconnect`);
   })
