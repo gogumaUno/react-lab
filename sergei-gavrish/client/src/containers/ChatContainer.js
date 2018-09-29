@@ -6,12 +6,9 @@ import socket from '../socket';
 import Message from '../components/Message';
 
 class ChatContainer extends Component {
-  constructor(props) {
-    super()
-    this.state = {
-      message: '',
-      messages: [],
-    }
+  state = {
+    message: '',
+    messages: [],
   }
 
   checkUser = () => {
@@ -21,6 +18,7 @@ class ChatContainer extends Component {
   }
 
   componentDidMount() {
+    console.log('Qooooooo')
     socket.emit('join', this.props.room)
     socket.on('joined_room', messages => {
       this.setState({
@@ -28,11 +26,20 @@ class ChatContainer extends Component {
       })
     })
     socket.on('recieve_message', (message) => {
-      console.log({message});
+      console.log({ message });
       this.setState({
         messages: this.state.messages.concat(message),
       })
     })
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    console.log({prevProps, prevState})
+    if (prevProps.room !== this.props.room) {
+      socket.emit('leave', prevProps.room);
+      socket.emit('join', this.props.room);
+      this.setState({messages: []})
+    }
   }
 
   handleSubmit = event => {

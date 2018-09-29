@@ -42,6 +42,12 @@ io.on('connection', client => {
         select: '_id message date user'
       })
       .then(room => client.emit('joined_room', room[0].messages))
+      .catch(err => console.error(err))
+  })
+
+  client.on('leave', room => {
+    console.log(`${client.id} disconnected from room ${room}`);
+    client.leave(room);
   })
 
   client.on('message', obj => {
