@@ -6,11 +6,12 @@ import socket from '../socket';
 import Message from '../components/Message';
 
 class ChatContainer extends Component {
-
-  state = {
-    room: 'AHAHAA',
-    message: '',
-    messages: [],
+  constructor(props) {
+    super()
+    this.state = {
+      message: '',
+      messages: [],
+    }
   }
 
   checkUser = () => {
@@ -20,19 +21,24 @@ class ChatContainer extends Component {
   }
 
   componentDidMount() {
-    socket.emit('join', this.state.room)
+    socket.emit('join', this.props.room)
+    socket.on('joined_room', messages => {
+      this.setState({
+        messages: this.state.messages.concat(messages),
+      })
+    })
     socket.on('recieve_message', (message) => {
-      console.log(this.state.messages);
-      // this.setState({
-      //   messages: this.state.messages.concat(message),
-      // })
+      console.log({message});
+      this.setState({
+        messages: this.state.messages.concat(message),
+      })
     })
   }
 
   handleSubmit = event => {
     event.preventDefault()
-    // console.log(this.state.message);
-    socket.emit('message', { message: this.state.message, room: this.state.room, user: user._id });
+    console.log({ message: this.state.message, room: this.props.room, user: this.props.user._id });
+    socket.emit('message', { message: this.state.message, room: this.props.room, user: this.props.user._id });
     this.setState({
       message: '',
     });
@@ -50,30 +56,35 @@ class ChatContainer extends Component {
         display: 'flex', flex: '1', height: '100vh', alignItems: 'center', justifyContent: 'center', flexDirection: 'column'
       }}>
         <div style={{
-          display: 'flex', flexDirection: 'column'
+          display: 'flex', flex: '1', flexDirection: 'column'
         }}>
-          {this.state.messages.map(message => (
+          {this.state.messages.map((message, index) => (
             <Message
-              message={message}
-              currentUserId
-              messageUserId
-              message
-              date
-            />))}
+              key={index}
+              message={message.message}
+              currentUserId={this.props.user._id}
+              messageUserId={message.user}
+              date={message.date}
+            />
+          ))}
         </div>
-        <form onSubmit={this.handleSubmit}>
+        <form onSubmit={this.handleSubmit} style={{
+          display: 'flex', flex: '1', flexDirection: 'column'
+        }}>
           <TextField name="message" value={this.state.message} onChange={this.onChange} />
           <Button type="submit">SEND</Button>
         </form>
       </div>
     )
   }
-
 }
 
-const mapStateToProps = state => ({
-  user: state.user,
-  messages: state.messages,
-})
+const mapStateToProps = (state, OwnProps) => {
+  return {
+    user: state.user,
+    messages: state.messages,
+    room: OwnProps.room,
+  }
+}
 
 export default connect(mapStateToProps)(ChatContainer)

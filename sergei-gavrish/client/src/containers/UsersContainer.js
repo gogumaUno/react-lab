@@ -19,10 +19,14 @@ export default class AppContent extends Component {
   render() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        {this.state.users.map(user => (
-          <p style={{
-            cursor: 'pointer'
-          }}>
+        {this.state.users.map((user, index) => (
+          <p
+            key={index}
+            style={{
+              cursor: 'pointer'
+            }}
+            onClick={() => this.props.onClick(user.login)}
+          >
             {user.login}
           </p>
         ))}
