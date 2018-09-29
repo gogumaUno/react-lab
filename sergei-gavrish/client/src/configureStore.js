@@ -5,8 +5,10 @@ import rootReducer from './reducers/index';
 
 const initialState = {
   user: {
-    tokenId: localStorage.getItem('tokenId') || '',
+    token: localStorage.getItem('token') || '',
     expiresIn: localStorage.getItem('expiresIn') || '',
+    _id: localStorage.getItem('_id') || '',
+    login: localStorage.getItem('login') || '',
   },
 }
 
@@ -18,9 +20,11 @@ const store = createStore(
 );
 
 store.subscribe(() => {
-  const { user } = store.getState();
-  localStorage.setItem('tokenId', user.tokenId);
-  localStorage.setItem('expiresIn', user.expiresIn);
+  const { token, expiresIn, _id, login } = store.getState().user;
+  localStorage.setItem('token', token);
+  localStorage.setItem('expiresIn', expiresIn);
+  localStorage.setItem('_id', _id);
+  localStorage.setItem('login', login);
 });
 
 export default store;

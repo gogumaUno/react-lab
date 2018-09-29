@@ -6,7 +6,7 @@ import * as userActions from '../actions/userActions';
 class AuthContainer extends Component {
   
   submit = values => {
-    fetch(`http://localhost:8080/api/users/login`, {
+    fetch(`http://localhost:8080/api/auth/login`, {
       method: 'POST',
       body: JSON.stringify({
         login: values.login,

@@ -2,8 +2,9 @@ import mongoose from 'mongoose'
 
 const MessageSchema = new mongoose.Schema({
   user: String,
-  content: String,
-  room: String
+  message: String,
+  room: String,
+  date: Date,
 })
 
 export default mongoose.model('Message', MessageSchema);

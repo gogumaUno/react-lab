@@ -46,11 +46,15 @@ router.post('/login',
           expiresIn: 86400
         });
 
+        const { _id, login } = user;
+
         res
           .send({
             auth: true,
-            tokenId: token,
+            token,
             expiresIn: 86400,
+            _id,
+            login,
           });
       })
       .catch( err => {

@@ -5,14 +5,17 @@ import SocketIO from 'socket.io';
 import bodyParser from 'body-parser'
 
 import { SERVERPORT } from './config/config';
-import AuthController from './controllers/AuthController';
+import AuthController from './controllers/authController';
+import UsersController from './controllers/usersController';
+import RoomsController from './controllers/roomsController';
+import Message from './models/messageSchema';
 
 const app = express();
 app.use(cors());
-// app.use(bodyParser.json());
-// app.use(bodyParser.urlencoded({ extended: true }));
-
-app.use('/api/users', AuthController);
+app.use('/api/auth', AuthController);
+app.use('/api/users', UsersController);
+app.use('/api/rooms', RoomsController);
+// app.use('/api/messages', MessagesController);
 
 const server = http.createServer(app);
 const io = SocketIO(server);
@@ -26,7 +29,14 @@ io.on('connection', client => {
   })
 
   client.on('message', obj => {
-    io.to(obj.room).emit('recieve_message', obj.message)
+    Message
+      .create({
+        user: obj.user,
+        message: obj.message,
+        room: obj.room,
+        date: Date.now(),
+      })
+      .then(message => io.to(message.room).emit('recieve_message', message))
   })
 
   client.on('disconnect', () => {
