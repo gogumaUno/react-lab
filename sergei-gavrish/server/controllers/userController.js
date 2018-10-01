@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 // import jwt from 'jsonwebtoken';
 // import bcrypt from 'bcryptjs';
 import User from '../models/userSchema';
+import Avatar from '../models/avatarSchema';
 // import { KEY } from '../config/config';
 
 const router = express.Router();
@@ -10,13 +11,36 @@ const router = express.Router();
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
 
-router.get('/getUsers',
-  (req, res) => {
-    User
-      .find({},{password:0})
-      .then(users => res.send(users))
-  }
-);
+router.get('/getUsers', (req, res) => {
+  User
+    .find({}, { password: 0, email: 0, rooms: 0, __v: 0 })
+    .then(users => res.send(users))
+});
+
+router.put('/avatar', (req, res) => {
+
+  Avatar
+    .create({
+      avatar: {
+        data: req.body.avatar,
+        contentType: 'image/png',
+      }
+    })
+    .then(avatar => { 
+      return User.findOneAndUpdate(
+        req.body.id,
+        {
+          $set: {
+            'profile': {'avatar': avatar},
+          }
+        },
+        { 'upsert': true, 'new': true }
+      )})
+    .then(user => {
+      console.log(user);
+      res.send(user);
+    })
+});
 
 // async (req, res) => {
 //   const hashedPassword = await bcrypt.genSalt()

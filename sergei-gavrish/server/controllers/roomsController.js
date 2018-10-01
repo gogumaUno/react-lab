@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 // import jwt from 'jsonwebtoken';
 // import bcrypt from 'bcryptjs';
 import Room from '../models/roomSchema';
+import User from '../models/userSchema';
 // import { KEY } from '../config/config';
 
 const router = express.Router();
@@ -10,29 +11,31 @@ const router = express.Router();
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
 
-router.get('/getRooms',
-  (req, res) => {
-    Room
-      .find({})
-      .populate({
-        path: 'users',
-        model: 'User',
-        select: '_id login'
-      })
-      .then(rooms => res.send(rooms))
-  }
-);
+router.get('/getRooms', (req, res) => {
+  Room
+    .find({}, { __v: 0 })
+    .populate({
+      path: 'users',
+      model: 'User',
+      select: '_id login'
+    })
+    .then(rooms => res.send(rooms))
+});
 
-router.post('/newRoom',
-  (req, res) => {
-    Room
-      .create({
-        title: req.body.title,
-        users: req.body.userId,
+router.post('/newRoom', (req, res) => {
+  Room
+    .create({
+      title: req.body.title,
+      users: req.body.userId,
+    })
+    .then(room => User
+      .findByIdAndUpdate(req.body.userId, { $push: { rooms: room._id } }, { 'new': true })
+      .then(() => {
+        req.app.io.emit('NEW_ROOM', room);
+        res.send('room created')
       })
-      .then(room => res.send(room));
-  }
-);
+    )
+});
 
 // async (req, res) => {
 //   const hashedPassword = await bcrypt.genSalt()

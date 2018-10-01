@@ -6,7 +6,7 @@ import bodyParser from 'body-parser'
 
 import { SERVERPORT } from './config/config';
 import AuthController from './controllers/authController';
-import UsersController from './controllers/usersController';
+import UserController from './controllers/userController';
 import RoomsController from './controllers/roomsController';
 import Message from './models/messageSchema';
 import Room from './models/roomSchema';
@@ -14,14 +14,14 @@ import Room from './models/roomSchema';
 const app = express();
 app.use(cors());
 app.use('/api/auth', AuthController);
-app.use('/api/users', UsersController);
+app.use('/api/user', UserController);
 app.use('/api/rooms', RoomsController);
 // app.use('/api/messages', MessagesController);
 
 const server = http.createServer(app);
-const io = SocketIO(server);
+app.io = SocketIO(server);
 
-io.on('connection', client => {
+app.io.on('connection', client => {
   console.log(`${client.id} connected`);
 
   client.on('join', room => {
@@ -39,9 +39,12 @@ io.on('connection', client => {
       .populate({
         path: 'messages',
         model: 'Message',
-        select: '_id message date user'
+        select: '_id text timeStamp user'
       })
-      .then(room => client.emit('joined_room', room[0].messages))
+      .then(room => {
+        console.log(room[0] && room[0].messages || [])
+        client.emit('joined_room', room[0] && room[0].messages || [])
+      })
       .catch(err => console.error(err))
   })
 
@@ -51,17 +54,19 @@ io.on('connection', client => {
   })
 
   client.on('message', obj => {
+    console.log(obj);
     Message
       .create({
         user: obj.user,
-        message: obj.message,
-        room: obj.room,
-        date: Date.now(),
+        text: obj.text,
+        timeStamp: Date.now(),
       })
       .then(message => {
         Room
-        .findOneAndUpdate({ title: message.room }, { $push: { messages: message._id } }, { 'new': true})
-        .then(() => io.to(message.room).emit('recieve_message', message))
+        .findOneAndUpdate({ title: obj.room }, { $push: { messages: message._id } }, { 'new': true})
+        .then(() => {
+          console.log(app.io.to(obj.room));
+          app.io.to(obj.room).emit('recieve_message', message)})
       })
       
     })
@@ -71,6 +76,10 @@ io.on('connection', client => {
     })
     
   });
+
+  app.io.on('NEW_ROOM', room => {
+    console.log(room);
+  })
   
   server.listen(SERVERPORT, error => {
     if (error) throw error;

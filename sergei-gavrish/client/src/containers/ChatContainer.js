@@ -18,34 +18,35 @@ class ChatContainer extends Component {
   }
 
   componentDidMount() {
-    console.log('Qooooooo')
+    console.log(this.props.room)
     socket.emit('join', this.props.room)
     socket.on('joined_room', messages => {
       this.setState({
         messages: this.state.messages.concat(messages),
       })
     })
-    socket.on('recieve_message', (message) => {
-      console.log({ message });
+    socket.on('recieve_message', message => {
+      console.log('111111111111111')
       this.setState({
         messages: this.state.messages.concat(message),
-      })
+      }, () => console.log(this.state.messages))
     })
   }
 
   componentDidUpdate(prevProps, prevState) {
-    console.log({prevProps, prevState})
     if (prevProps.room !== this.props.room) {
+      if (!prevState.messages.length) {
+        'delete room'
+      }
       socket.emit('leave', prevProps.room);
       socket.emit('join', this.props.room);
-      this.setState({messages: []})
+      this.setState({ messages: [] })
     }
   }
 
   handleSubmit = event => {
     event.preventDefault()
-    console.log({ message: this.state.message, room: this.props.room, user: this.props.user._id });
-    socket.emit('message', { message: this.state.message, room: this.props.room, user: this.props.user._id });
+    socket.emit('message', { text: this.state.message, user: this.props.user._id, room: this.props.room });
     this.setState({
       message: '',
     });
@@ -65,15 +66,18 @@ class ChatContainer extends Component {
         <div style={{
           display: 'flex', flex: '1', flexDirection: 'column'
         }}>
-          {this.state.messages.map((message, index) => (
-            <Message
-              key={index}
-              message={message.message}
-              currentUserId={this.props.user._id}
-              messageUserId={message.user}
-              date={message.date}
-            />
-          ))}
+          {this.state.messages.map(message => {
+            console.log(message);
+            return (
+              <Message
+                key={message._id}
+                message={message.text}
+                currentUserId={this.props.user._id}
+                messageUserId={message.user}
+                date={message.date}
+              />
+            )
+          })}
         </div>
         <form onSubmit={this.handleSubmit} style={{
           display: 'flex', flex: '1', flexDirection: 'column'

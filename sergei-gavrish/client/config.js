@@ -4,6 +4,4 @@ dotenv.config();
 
 const { PORT } = process.env;
 
-console.log(PORT);
-
 export default PORT;

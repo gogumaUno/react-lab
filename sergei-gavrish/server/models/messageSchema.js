@@ -1,10 +1,19 @@
 import mongoose from 'mongoose'
 
 const MessageSchema = new mongoose.Schema({
-  user: String,
-  message: String,
-  room: String,
-  date: Date,
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  text: {
+    type: String,
+    required: true,
+  },
+  timeStamp: {
+    type: Date,
+    required: true,
+  },
 })
 
 export default mongoose.model('Message', MessageSchema);

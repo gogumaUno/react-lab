@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import User from '../models/userSchema';
 import { KEY } from '../config/config';
+import assert from 'assert';
 
 const router = express.Router();
 
@@ -20,10 +21,14 @@ router.post('/register',
       });
 
     User.create({
-      login: req.body.login,
-      password: hashedPassword
+      profile: {
+        login: req.body.login
+      },
+      password: hashedPassword,
+      email: req.body.email.toLowerCase(),
     })
-      .then(() => {
+      .then(user => {
+        req.app.io.emit('user_created', {profile: user.profile, user: user._id})
         return res.status(200).send({ message: 'Everything good. You\'re singed up' })
       })
       .catch(err => {
@@ -34,19 +39,19 @@ router.post('/register',
 
 router.post('/login',
   (req, res) => {
-    console.log(req.body)
-    User.findOne({ login: req.body.login })
-      .then( user => {
-        if(!user) res.status(404).send('User not found');
+    User
+      .findOne({ 'profile.login': req.body.login })
+      .then(user => {
+        if (!user) res.status(404).send('User not found');
 
         const validPassword = bcrypt.compareSync(req.body.password, user.password);
-        if(!validPassword) return res.status(400).send({ auth: false, token: null});
+        if (!validPassword) return res.status(400).send({ auth: false, token: null });
 
         const token = jwt.sign({ id: user._id }, KEY, {
           expiresIn: 86400
         });
 
-        const { _id, login } = user;
+        const { _id, profile } = user;
 
         res
           .send({
@@ -54,13 +59,13 @@ router.post('/login',
             token,
             expiresIn: 86400,
             _id,
-            login,
+            profile,
           });
       })
-      .catch( err => {
-        if(!res.headersSent) res.status(500).send('Something went wrong');
+      .catch(err => {
+        if (!res.headersSent) res.status(500).send('Something went wrong');
         return console.error(err);
       });
-});
+  });
 
 export default router;

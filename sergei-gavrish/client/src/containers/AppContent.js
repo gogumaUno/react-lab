@@ -11,18 +11,31 @@ import ChatContainer from './ChatContainer';
 export default class AppContent extends Component {
 
   state = {
-    room: null,
+    chat: null,
+    privateChat: {
+      chat: null,
+      user: null,
+    }
   }
 
   componentDidMount() {
   }
 
-  handleClick = value => {
-    this.setState({ room: value })
+  chooseChat = title => {
+    this.setState({ chat: title })
+  };
+
+  choosePrivateChat = (title, userId) => {
+    console.log({title, userId});
+    this.setState({
+      privateChat:{
+        chat: title,
+        user: userId
+      }})
   };
 
   renderChat = () => {
-    if (!this.state.room) {
+    if (!this.state.chat && !this.state.privateChat.chat) {
       return (
         <div style={{
           display: 'flex', flex: '1', height: '100vh', alignItems: 'center', justifyContent: 'center', flexDirection: 'column'
@@ -31,7 +44,7 @@ export default class AppContent extends Component {
     </div>
       )
     } else {
-      return <ChatContainer room={this.state.room} />
+      return <ChatContainer room={this.state.chat || this.state.privateChat.chat} />
     }
   }
 
@@ -39,10 +52,9 @@ export default class AppContent extends Component {
     return (
       <div style={{ display: 'flex', justifyContent: 'space-around' }}>
         <div style={{ display: 'flex', flex: '1', justifyContent: 'space-around' }}>
-          <RoomsContainer onClick={this.handleClick} />
-          <UsersContainer onClick={this.handleClick} />
+          <RoomsContainer onClick={this.chooseChat} newPrivateChat={this.state.privateChat.chat ? this.state.privateChat : null}/>
+          <UsersContainer onClick={this.choosePrivateChat} />
         </div>
-
         {this.renderChat()}
       </div>
     )
